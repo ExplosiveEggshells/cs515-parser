@@ -32,3 +32,6 @@
 *.app
 
 ncc
+
+/tests
+/inputs

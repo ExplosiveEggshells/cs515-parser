@@ -13,7 +13,6 @@ tree_gen::tree_gen(std::vector<Token> tokens)
 
 void tree_gen::advance_iterator()
 {
-    cout << current_token.value << endl;
     if (current_token.id == 3)
     {
         throw ParseException("Attempted to advance beyond End of Expression during code tree generation.", current_token);
@@ -39,7 +38,10 @@ void tree_gen::print_tree(Node* n)
         print_tree(n->child);
     }
 
-    std::cout << n->token.value << ",";
+    if (n->token.value.empty()) // Print the token's ID, unless it has a non-empty value.
+        std::cout << n->token.id << ",";
+    else
+        std::cout << n->token.value << ",";
 
     if (n->sibling != nullptr)
     {
