@@ -34,7 +34,12 @@ void tree_gen::advance_iterator()
 {
     token_iterator++;
     if (!end_of_tokens())
-        current_token = tokens[token_iterator];   
+        current_token = tokens[token_iterator];
+
+    while(current_token.id == ')' && !end_of_tokens())
+    {
+        advance_iterator();
+    }
 }
 
 
@@ -236,6 +241,7 @@ void tree_gen::create_parse_tree()
 {
     format_expr(tokens);
     advance_iterator();
+    
     recursive_parse(head, true);
     print_tree(head);
     cout << endl;
@@ -262,6 +268,7 @@ void tree_gen::variable(Node*& n)
     if (current_token.id == TypeID::INTEGER)
     {
         n = new Node(current_token);
+        cout << "New Node: " << n->token.value << endl;
         advance_iterator();
     }
 }
@@ -334,6 +341,11 @@ void tree_gen::recursive_parse(Node*& n, bool branching)
     {
         cout << "yoink!" << endl;
         advance_iterator();
+        while (!current_token.is_branching_bracket && current_token.id == '(' && !end_of_tokens())
+        {
+            cout << "doink! " << current_token.value << endl;
+            advance_iterator();
+        }
     }
 
     cout << "c" << endl;

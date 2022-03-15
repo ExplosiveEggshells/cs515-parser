@@ -34,13 +34,14 @@ int main(int argc, char** argv)
     // toks.push_back(Token("*"));
     // toks.push_back(Token("8", TypeID::INTEGER));
 
+    toks.push_back(Token("("));
+    toks.push_back(Token("("));
     toks.push_back(Token("5", TypeID::INTEGER));
+    toks.push_back(Token(")"));
+    toks.push_back(Token(")"));
     toks.push_back(Token("+"));
     toks.push_back(Token("("));
-    toks.push_back(Token("-"));
-    toks.push_back(Token("4", TypeID::INTEGER));
-    toks.push_back(Token("-"));
-    toks.push_back(Token("3", TypeID::INTEGER));
+    toks.push_back(Token("9", TypeID::INTEGER));
     toks.push_back(Token(")"));
 
     tree_gen parse_tree = tree_gen(toks);

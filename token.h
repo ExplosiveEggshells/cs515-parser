@@ -51,7 +51,7 @@ struct Token {
         this->id = -1;
         this->value = "";
         this->is_unary = false;
-        is_branching_bracket = false;
+        this->is_branching_bracket = false;
     }
 
     Token(uint16_t line, uint16_t column)
@@ -63,7 +63,7 @@ struct Token {
         this->id = -1;
         this->value = "";
         this->is_unary = false;
-        is_branching_bracket = false;
+        this->is_branching_bracket = false;
     }
 
     Token(std::string one_char_value)
@@ -73,7 +73,7 @@ struct Token {
         this->value = one_char_value;
         this->id = one_char_value.front();
         this->is_unary = false;
-        is_branching_bracket = false;
+        this->is_branching_bracket = false;
     }
 
     Token(std::string value, char id)
@@ -85,7 +85,7 @@ struct Token {
         this->id = id;
 
         this->is_unary = false;
-        is_branching_bracket = false;
+        this->is_branching_bracket = false;
     }
     
     void setContent(std::string value, char id)
