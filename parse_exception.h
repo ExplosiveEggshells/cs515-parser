@@ -16,8 +16,8 @@ public:
     std::string message()
     {
         char * error_msg;
-        sprintf(error_msg, "Parse Error: %s @ %d:%d (%c)\n", msg.c_str(),
-            bad_token.line, bad_token.column, bad_token.id);
+        sprintf(error_msg, "Parse Error: %s | ID = %d @ %d:%d (%c)", msg.c_str(),
+            bad_token.id, bad_token.line, bad_token.column, bad_token.id);
         return std::string(error_msg);
     }
 

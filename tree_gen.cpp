@@ -3,89 +3,31 @@
 tree_gen::tree_gen() 
 {
     token_iterator = -1;
-    init_operator_vector();
 }
 
 tree_gen::tree_gen(std::vector<Token> tokens)
 {
     token_iterator = -1;
     this->tokens = tokens;
-    init_operator_vector();
-}
-
-bool tree_gen::isOperator(Token t)
-{
-    return std::binary_search(operator_vector.begin(), operator_vector.end(), t.id);
-}
-
-void tree_gen::init_operator_vector()
-{
-    char ops[] = {'+', '-', '*', '/', TypeID::MOD};
-    operator_vector = std::vector<char>(ops, ops + sizeof(ops) / sizeof(char));
-    std::sort(operator_vector.begin(), operator_vector.end());
-}
-
-bool tree_gen::end_of_tokens()
-{
-    return token_iterator >= tokens.size();
 }
 
 void tree_gen::advance_iterator()
 {
+    cout << current_token.value << endl;
+    if (current_token.id == 3)
+    {
+        throw ParseException("Attempted to advance beyond End of Expression during code tree generation.", current_token);
+    }
     token_iterator++;
-    if (!end_of_tokens())
-        current_token = tokens[token_iterator];
-
-    while(current_token.id == ')' && !end_of_tokens())
-    {
-        advance_iterator();
-    }
-}
-
-
-bool tree_gen::isUnary(std::list<Token>& token_list, std::list<Token>::iterator& tok_it)
-{
-    // The left side only needs to be checked if this is not the first token.
-    // A first-token + or - CANNOT be a binary operator, so it needs to be unary.
-    if (tok_it != token_list.begin())
-    {
-        // Create a copy of the current position and go backwards by one.
-        std::list<Token>::iterator previous = tok_it;
-        previous--;
-
-        // If the previous token is not an operator at this point, then the token
-        // is not unary.
-        if (!isOperator(*previous) && (*previous).id != '(')
-        {
-            return false;
-        }
-    }
-
-    // If the checked token is not the last one in the iterator...
-    if (tok_it != --token_list.end())
-    {
-        // Create a copy of the current position and go forwards by one.
-        std::list<Token>::iterator next = tok_it;
-        next++;
-        char next_id = (*next).id;
-
-        // The right-side of the +/- needs to be an integer, identifier, or '(' for
-        // it to be unary.
-        if (next_id != TypeID::INTEGER && next_id != TypeID::IDENT && next_id != '(')
-            return false;  
-    }
-    else
-    {
-        return false;
-    }
-
-    return true;
+    current_token = tokens[token_iterator];
 }
 
 
 void tree_gen::create_parse_tree()
 {
+    tokens.push_back(Token("Parser EOX", 3));   // Add a ETX to signify an End of Expression. There should be no attempt to advance beyond this token.
     advance_iterator();
+    expression(head);
     print_tree(head);
     cout << endl;
 }
@@ -104,5 +46,106 @@ void tree_gen::print_tree(Node* n)
         print_tree(n->sibling);
     }
     
+}
+
+void tree_gen::expression(Node*& n)
+{
+    Node *t1, *t2, *t3;
+    term(t1);
+
+    while(true)
+    {
+        if (current_token.id == '+' || current_token.id == '-')
+        {
+            Token op_token = current_token;
+            advance_iterator();
+            term(t2);
+            t3 = new Node(op_token);
+            t3->child = t1;
+            t3->child->sibling = t2;
+            t1 = t3;
+        }
+        else
+        {
+            n = t1;
+            break;
+        }
+    }
+}
+void tree_gen::term(Node*& n)
+{
+    Node *t1, *t2, *t3;
+    power(t1);
+
+    while (true)
+    {
+        if (current_token.id == '*' || current_token.id == '/' || current_token.id == TypeID::MOD)
+        {
+            Token op_token = current_token;
+            advance_iterator();
+            power(t2);
+            t3 = new Node(op_token);
+            t3->child = t1;
+            t3->child->sibling = t2;
+            t1 = t3;
+        }
+        else
+        {
+            n = t1;
+            break;
+        }
+    }
+}
+void tree_gen::power(Node*& n)
+{
+    Node *t1, *t2, *t3;
+    negation(t1);
+
+    while (true)
+    {
+        if (current_token.id == '^')
+        {
+            Token op_token = current_token;
+            advance_iterator();
+            power(t2);
+            t3 = new Node(op_token);
+            t3->child = t1;
+            t3->child->sibling = t2;
+            t1 = t3;
+        }
+        else
+        {
+            n = t1;
+            break;
+        }
+    }
+}
+void tree_gen::negation(Node*& n)
+{
+    if (current_token.id == TypeID::INTEGER || current_token.id == '(')
+    {
+        unit(n);
+    }
+}
+void tree_gen::unit(Node*& n)
+{
+    if (current_token.id == TypeID::INTEGER)
+    {
+        n = new Node(current_token);
+        advance_iterator();
+    }
+    else if (current_token.id == '(')
+    {
+        advance_iterator();
+        expression(n);
+        if (current_token.id != ')')
+        {
+            if (current_token.id == 3)
+                throw ParseException("Expected matching ')' to enclose parenthesized expression before End of Expression.", current_token);
+            else
+                throw ParseException("Expected matching ')' to enclose parenthesized expression. The following token was found instead:", current_token);
+        }
+        advance_iterator();
+    }
 }
 
