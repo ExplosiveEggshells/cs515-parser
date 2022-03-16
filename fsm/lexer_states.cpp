@@ -48,7 +48,29 @@ void finishAndClearToken(LexerFSM* parent_state, char id)
     {
         value = parent_state->getSequence();
     }
-    parent_state->tokens.back().setContent(value, id);
+
+    Token * finished_tok = &parent_state->tokens.back();
+    finished_tok->setContent(value, id);
+    
+    if (finished_tok->id == TypeID::INTEGER)
+    {
+        finished_tok->i_value = 
+            std::stoi(finished_tok->value, nullptr, 10);
+    }
+    else
+    {
+        // Not exactly a great sentinel value, but it'll do.
+        finished_tok->i_value = INT32_MIN;
+    }
+
+    if (finished_tok->id == TypeID::IDENT)
+    {
+        if (finished_tok->value == "mod")
+        {
+            finished_tok->id = TypeID::MOD;
+        }
+    }
+
     parent_state->clearSequence();
 }
 

@@ -10,10 +10,11 @@
 #include "id_table.h"
 #include "tree_gen.h"
 
+#define RECOVERY true
+
 Token current_token;
 
-
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     if (argc != 2)
     {
@@ -24,48 +25,50 @@ int main(int argc, char** argv)
     LexerReader reader(argv[1]);
     LexerFSM fsm(&reader);
 
-    try 
+    try
     {
-        while(reader)
+        while (reader)
         {
             fsm.processNextState();
         }
         fsm.addEOF();
     }
-    catch (LexicalException& e)
+    catch (LexicalException &e)
     {
         std::cout << e.message() << std::endl;
     }
 
-    // for (auto it = fsm.tokens.begin(); it != fsm.tokens.end(); ++it)
-    // {
-    //     Token tok = *(it);
-    //     printf("TOKEN_%-13s @ [%3d: %3d] ID = %3d", 
-    //     token_strings[(int)tok.id].c_str(),
-    //     tok.line,
-    //     tok.column,
-    //     tok.id
-    //     );
-    //     if (!tok.value.empty())     // Print out the value if applicable.
-    //         printf(" -> %s", tok.value.c_str());
-    //     printf("\n");
-        
-    // }
-    
-    std::vector<Token> toks;
-    toks.push_back(Token("1", TypeID::INTEGER));
-    toks.push_back(Token("+"));
-    toks.push_back(Token("2", TypeID::INTEGER));
-    toks.push_back(Token("", 56));
-
+    std::vector<Node*> expression_heads;
     tree_gen parse_tree = tree_gen(fsm.tokens);
-    try
+
+    while (!parse_tree.finished())
     {
-        parse_tree.create_parse_tree();
-    } catch (ParseException& e)
+        Node* next_head;
+        try
+        {
+            parse_tree.create_parse_tree(next_head);
+            expression_heads.push_back(next_head);
+        }
+        catch (ParseException &e)
+        {
+            std::cerr << e.message() << endl;
+            if (RECOVERY)
+            {
+                std::cerr << "Attempting to print and execute any completed expressions up to this point." << endl;
+                break;
+            }
+            else
+            {
+                exit(-1);
+            }
+        }
+
+    }
+
+    for (size_t i = 0; i < expression_heads.size(); i++)
     {
-        std::cerr << e.message() << endl;
-        exit(-1);
+        parse_tree.print_tree(expression_heads[i]);
+        cout << endl;
     }
 
     return 0;

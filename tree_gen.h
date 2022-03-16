@@ -42,17 +42,17 @@ public:
     tree_gen();
     tree_gen(std::vector<Token> tokens);
     
-    void create_parse_tree();
+    bool finished();
+    void create_parse_tree(Node*& n);
+    void print_tree(Node* n);
 
 private:
     Token current_token;
     std::vector<Token> tokens;
     int token_iterator;
 
-    bool end_of_tokens();
     void advance_iterator();
 
-    void print_tree(Node* n);
     
     void expression(Node*& n);
     void term(Node*& n);
@@ -60,8 +60,6 @@ private:
     void negation(Node*& n);
     void unit(Node*& n);
 
-    Node* head;
-    std::vector<char> operator_vector;
 };
 
 #endif
