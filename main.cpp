@@ -9,10 +9,9 @@
 #include "fsm/lexer_fsm.h"
 #include "id_table.h"
 #include "tree_gen.h"
+#include "encoded_program.h"
 
 #define RECOVERY true
-
-Token current_token;
 
 int main(int argc, char **argv)
 {
@@ -69,6 +68,12 @@ int main(int argc, char **argv)
     {
         parse_tree.print_tree(expression_heads[i]);
         cout << endl;
+
+        EncodedProgram prog(expression_heads[i]);
+        prog.assemble();
+        prog.execute();
+
+        parse_tree.delete_tree(expression_heads[i]);
     }
 
     return 0;

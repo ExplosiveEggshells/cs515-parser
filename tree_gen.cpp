@@ -62,6 +62,21 @@ void tree_gen::print_tree(Node *n)
     }
 }
 
+void tree_gen::delete_tree(Node *n)
+{
+    if (n->child != nullptr)
+    {
+        delete_tree(n->child);
+    }
+
+    if (n->sibling != nullptr)
+    {
+        delete_tree(n->sibling);
+    }
+
+    delete(n);
+}
+
 void tree_gen::expression(Node *&n)
 {
     Node *t1, *t2, *t3;
@@ -137,7 +152,7 @@ void tree_gen::power(Node *&n)
 void tree_gen::negation(Node *&n)
 {
     Node *t1, *t2;
-    
+
     if (current_token.id == '-')
     {
         Token op_token = current_token;

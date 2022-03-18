@@ -4,18 +4,21 @@ LEX_SRC = ./lexer-src/
 
 make: main.o \
 	lexer_reader.o lexer_fsm.o lexer_states.o \
-	tree_gen.o
-	$(CC) $(CXXFLAGS) -o ncc main.o tree_gen.o lexer_reader.o lexer_fsm.o lexer_states.o
+	tree_gen.o encoded_program.o
+	$(CC) $(CXXFLAGS) -o ncc main.o tree_gen.o disasm.o encoded_program.o lexer_reader.o lexer_fsm.o lexer_states.o 
 
 main.o: main.cpp \
 	id_table.h lexer_states.o lexer_reader.o lexer_fsm.o lexer_error.h \
-	tree_gen.o
+	tree_gen.o encoded_program.o
 	$(CC) $(CXXFLAGS) -c -o main.o main.cpp
 
 # PARSER TARGETS
 
-tree_gen.o: tree_gen.cpp tree_gen.h parse_exception.h
+tree_gen.o: tree_gen.cpp tree_gen.h parse_exception.h node.h
 	$(CC) $(CXXFLAGS) -c -o tree_gen.o tree_gen.cpp
+
+encoded_program.o: encoded_program.cpp encoded_program.h node.h
+	$(CC) $(CXXFLAGS) -c -o encoded_program.o encoded_program.cpp
 
 # LEXER TARGETS
 
