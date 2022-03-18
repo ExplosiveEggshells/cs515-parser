@@ -62,6 +62,33 @@ void tree_gen::print_tree(Node *n)
     }
 }
 
+void tree_gen::print_tree_pretty(Node* n, uint depth)
+{
+    for (uint i = 0; i < depth; i++)
+    {
+        printf("  ");
+    }
+
+    if (n->token.i_value != INT32_MIN) // Print the token's ID, unless it has a non-empty value.
+        std::cout << n->token.i_value;
+    else if (!n->token.value.empty())
+        std::cout << n->token.value;
+    else
+        std::cout << n->token.id;
+
+    std::cout << std::endl;
+
+    if (n->child != nullptr)
+    {
+        print_tree_pretty(n->child, depth + 1);
+    }
+
+    if (n->sibling != nullptr)
+    {
+        print_tree_pretty(n->sibling, depth);
+    }
+}
+
 void tree_gen::delete_tree(Node *n)
 {
     if (n->child != nullptr)

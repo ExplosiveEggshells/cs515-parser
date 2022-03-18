@@ -8,7 +8,7 @@
 #include "parse_exception.h"
 #include "disasm.h"
 
-#define VERBOSE true
+#define VERBOSE false
 #define ENCODE program[program_offset++]=
 
 class EncodedProgram
@@ -32,6 +32,9 @@ private:
     void stack_add();
     void stack_subtract();
     void stack_multiply();
+    void stack_divide(bool mod);
+    void stack_exponentiate();
+    void stack_uplus();
     void stack_negation();
 
     Node* parse_tree_head;

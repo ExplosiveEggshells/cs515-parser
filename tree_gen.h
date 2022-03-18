@@ -21,6 +21,7 @@ public:
     bool finished();
     void create_parse_tree(Node*& n);
     void print_tree(Node* n);
+    void print_tree_pretty(Node* n, uint depth);
     void delete_tree(Node* n);
 private:
     Token current_token;

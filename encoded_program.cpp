@@ -21,11 +21,12 @@ void EncodedProgram::execute()
 {
     int value = 0;
 
-    std::cout << "Execute" << std::endl;
-
-    disassemble((unsigned char * ) program, program_offset);
+    if (VERBOSE)
+        disassemble((unsigned char * ) program, program_offset);
+    
     value = ((int(*)())program)();
-    std::cout << "value: " << value << std::endl;
+    printf("Program Length: %u bytes\n", program_offset);
+    printf("Output: %d\n", value);
 
     munmap(program, PROGRAM_SIZE);
 }
@@ -41,7 +42,7 @@ void EncodedProgram::initialize()
         -1,
         0);
 
-    std::cout << "Allocated " << PROGRAM_SIZE << " bytes at " << (int *)program << " for program." << std::endl;
+    // std::cout << "Allocated " << PROGRAM_SIZE << " bytes at " << (int *)program << " for program." << std::endl;
 
     if (errno)
     {
@@ -75,8 +76,24 @@ void EncodedProgram::traverse(Node *n)
         stack_multiply();
         break;
 
+    case ('/'):
+        stack_divide(false);
+        break;
+
+    case (TypeID::MOD):
+        stack_divide(true);
+        break;
+
+    case ('^'):
+        stack_exponentiate();
+        break;
+
     case (TypeID::NEGATE):
         stack_negation();
+        break;
+
+    case (TypeID::UPLUS):
+        stack_uplus();
         break;
 
     default:
@@ -186,6 +203,55 @@ void EncodedProgram::stack_multiply()
         printf("<-STACK_MULT\n");
 }
 
+void EncodedProgram::stack_divide(bool mod)
+{
+    if (VERBOSE)
+        printf("->STACK_DIV\n");
+
+    pop(1);
+    pop(0);
+
+    // Zero out EDX.
+    // XOR EDX, EDX
+    ENCODE 0x31;
+    ENCODE mod_rm(2, 2);
+
+    // IDIV EAX:EDX, ECX
+    ENCODE 0xf7;
+    ENCODE 0xf9;
+
+    uint8_t returned_reg = (mod) ? 2 : 0;
+    push_reg(returned_reg);
+
+    if (VERBOSE)
+        printf("<-STACK_DIV\n");
+}
+
+void EncodedProgram::stack_exponentiate()
+{
+    if (VERBOSE)
+        printf("->STACK_EXP\n");
+
+    pop(1);
+    pop(0);
+
+    // In the future, exponentiation will occur here!
+
+    push_reg(0);
+
+    if (VERBOSE)
+        printf("<-STACK_NEG\n");
+}
+
+void EncodedProgram::stack_uplus()
+{
+    // Grab the last value of the stack, do nothing with it,
+    // and then push it back on the stack. A very apathetic operator.
+    pop(0);
+
+    push_reg(0);
+}
+
 void EncodedProgram::stack_negation()
 {
     if (VERBOSE)
@@ -194,7 +260,7 @@ void EncodedProgram::stack_negation()
     pop(0);
 
     ENCODE 0xf7;
-    ENCODE 0x18;
+    ENCODE 0xd8;
 
     push_reg(0);
 

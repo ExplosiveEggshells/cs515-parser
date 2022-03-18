@@ -53,7 +53,7 @@ int main(int argc, char **argv)
             std::cerr << e.message() << endl;
             if (RECOVERY)
             {
-                std::cerr << "Attempting to print and execute any completed expressions up to this point." << endl;
+                std::cerr << "Attempting to print and execute any completed expressions up to this point." << "\n\n";
                 break;
             }
             else
@@ -66,12 +66,15 @@ int main(int argc, char **argv)
 
     for (size_t i = 0; i < expression_heads.size(); i++)
     {
-        parse_tree.print_tree(expression_heads[i]);
+        cout << "EXPRESSION #" << i << endl;
+        cout << "Code Tree:" << endl;
+        parse_tree.print_tree_pretty(expression_heads[i], 0);
         cout << endl;
-
         EncodedProgram prog(expression_heads[i]);
         prog.assemble();
         prog.execute();
+
+        cout << endl;
 
         parse_tree.delete_tree(expression_heads[i]);
     }
