@@ -20,9 +20,6 @@ void EncodedProgram::assemble()
 void EncodedProgram::execute()
 {
     int value = 0;
-
-    if (VERBOSE)
-        disassemble((unsigned char * ) program, program_offset);
     
     value = ((int(*)())program)();
     printf("Program Length: %u bytes\n", program_offset);
@@ -53,11 +50,19 @@ void EncodedProgram::initialize()
 
 void EncodedProgram::traverse(Node *n)
 {
+    // Post-order for the zig-zagging tree involves
+    // calling our child first, then visting here, and finishing
+    // with the sibling.
+
     if (n->child != nullptr)
     {
         traverse(n->child);
     }
 
+    // Based on the ID of the current token, we'll want
+    // to either encode a push of it's i-value if it's an integer,
+    // or encode an operation on the previous two items in the stack
+    // (unless it is unary, of course).
     switch (n->token.id)
     {
     case (TypeID::INTEGER):
@@ -81,7 +86,7 @@ void EncodedProgram::traverse(Node *n)
         break;
 
     case (TypeID::MOD):
-        stack_divide(true);
+        stack_divide(true); // divide returns the remainder if parm1 is true.
         break;
 
     case ('^'):
@@ -96,9 +101,9 @@ void EncodedProgram::traverse(Node *n)
         stack_uplus();
         break;
 
-    default:
+    default:    // Didn't recognize the ID? that's no good, throw an error!
         throw ParseException("Encountered unsupported symbol during assembly.", n->token);
-        exit(-1);
+        // exit(-1);
     }
     
 
@@ -110,6 +115,9 @@ void EncodedProgram::traverse(Node *n)
 
 void EncodedProgram::encode_imm32(int32_t value)
 {
+    // Add the lowest-order eight bits to the program,
+    // then shift the number rightwards by 8 bits. Do
+    // this four times.
     for (int i = 0; i < 4; i++)
     {
         ENCODE value & 0xff;
@@ -119,6 +127,8 @@ void EncodedProgram::encode_imm32(int32_t value)
 
 uint8_t EncodedProgram::mod_rm(uint8_t op1, uint8_t op2)
 {
+    // ModR/M ascends from 0xc0 to 0xFF in column-major order,
+    // so we can navigate it like a flattened 2D array!
     return 0xc0 + (op1 * 8) + op2;
 }
 
@@ -126,6 +136,8 @@ void EncodedProgram::push_imm32(int32_t value)
 {
     if (VERBOSE)
         printf("PUSH %d\n", value);
+    
+    // PUSH id
     ENCODE 0x68;
     encode_imm32(value);
 }
@@ -134,6 +146,8 @@ void EncodedProgram::push_reg(uint8_t reg)
 {
     if (VERBOSE)
         printf("PUSH r%d\n", reg);
+
+    // PUSH r#
     ENCODE 0x50 + reg;
 }
 
@@ -141,8 +155,9 @@ void EncodedProgram::pop(uint8_t reg)
 {
     if (VERBOSE)
         printf("POP r%d\n", reg);
-    uint8_t pop_op = 0x58 + reg;
-    ENCODE pop_op;
+
+    // POP r#
+    ENCODE 0x58 + reg;
 }
 
 void EncodedProgram::stack_add()
@@ -151,8 +166,8 @@ void EncodedProgram::stack_add()
         printf("->STACK ADD\n");
 
     // Grab the two operands from the stack into EAX, ECX
-    pop(0);
     pop(1);
+    pop(0);
 
     // ADD EAX, ECX
     ENCODE 0x01;
@@ -172,13 +187,14 @@ void EncodedProgram::stack_subtract()
         printf("->STACK_SUB\n");
     
     // Grab the two operands from the stack into EAX, ECX. Order matters here.
-    pop(1); // 2
-    pop(0); // 1
+    pop(1); 
+    pop(0); 
 
     // SUB EAX, ECX
     ENCODE 0x29;
     ENCODE mod_rm(1, 0);
 
+    // PUSH r0
     push_reg(0);
 
     if (VERBOSE)
@@ -190,12 +206,13 @@ void EncodedProgram::stack_multiply()
     if (VERBOSE)
         printf("->STACK_MULT\n");
 
-    pop(2);
+    pop(1);
     pop(0);
 
+    // IMULT EAX, ECX
     ENCODE 0x0f;
     ENCODE 0xaf;
-    ENCODE mod_rm(0, 2);
+    ENCODE mod_rm(0, 1);
 
     push_reg(0);
 
@@ -220,6 +237,7 @@ void EncodedProgram::stack_divide(bool mod)
     ENCODE 0xf7;
     ENCODE 0xf9;
 
+    // Push either EAX for the Quotient or EDX for the remainder.
     uint8_t returned_reg = (mod) ? 2 : 0;
     push_reg(returned_reg);
 
@@ -236,11 +254,12 @@ void EncodedProgram::stack_exponentiate()
     pop(0);
 
     // In the future, exponentiation will occur here!
+    // For now, just return the left operand.
 
     push_reg(0);
 
     if (VERBOSE)
-        printf("<-STACK_NEG\n");
+        printf("<-STACK_EXP\n");
 }
 
 void EncodedProgram::stack_uplus()
@@ -259,6 +278,7 @@ void EncodedProgram::stack_negation()
 
     pop(0);
 
+    // NEG EAX
     ENCODE 0xf7;
     ENCODE 0xd8;
 

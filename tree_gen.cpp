@@ -1,11 +1,5 @@
 #include "tree_gen.h"
 
-tree_gen::tree_gen()
-{
-    token_iterator = -1;
-    tokens.push_back(Token("Parser EOX", 3)); // Add a ETX to signify an End of Expression. There should be no attempt to advance beyond this token.
-}
-
 tree_gen::tree_gen(std::vector<Token> tokens)
 {
     token_iterator = -1;

@@ -5,7 +5,7 @@ LEX_SRC = ./lexer-src/
 make: main.o \
 	lexer_reader.o lexer_fsm.o lexer_states.o \
 	tree_gen.o encoded_program.o
-	$(CC) $(CXXFLAGS) -o ncc main.o tree_gen.o disasm.o encoded_program.o lexer_reader.o lexer_fsm.o lexer_states.o 
+	$(CC) $(CXXFLAGS) -o ncc main.o tree_gen.o encoded_program.o lexer_reader.o lexer_fsm.o lexer_states.o 
 
 main.o: main.cpp \
 	id_table.h lexer_states.o lexer_reader.o lexer_fsm.o lexer_error.h \

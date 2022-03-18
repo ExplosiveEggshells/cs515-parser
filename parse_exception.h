@@ -1,3 +1,10 @@
+/**
+ * @file parse_exception.h
+ * @author Jake Rogers (z1826513)
+ * @brief Used to specify and throw errors during the parsing
+ * and encoding process. ParseExceptions pass back information on the
+ * specific token which caused the error.
+ */
 #ifndef PARSE_ERROR_H
 #define PARSE_ERROR_H
 
