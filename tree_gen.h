@@ -61,6 +61,22 @@ private:
     void advance_iterator();
 
 
+    void statement_block(Node *&n)
+    {
+        while (true)
+        {
+            // Get a new statement...
+        }
+    }
+
+    void statement(Node *&n)
+    {
+        switch(current_token.id)
+        {
+            
+        }
+    }
+
     /**
      * The following functions creates a recursive descent parser for 
      * arithmetic expressions.

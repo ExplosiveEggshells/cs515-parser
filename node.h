@@ -17,25 +17,25 @@
 
 enum NodeType
 {
-    NULL = 0;
-    INTEGER = 1;
-    STRING_CONST = 2;
-    BOOLEAN = 3;    // Not used for A3
-}
+    NONE,
+    INT,
+    STRING_CONST,
+    BOOLEAN    // Not used for A3
+};
 
 struct Node
 {
     Node()
     {
         token = Token();
-        type = NodeType::NULL;
+        type = NodeType::NONE;
         child = nullptr;
         sibling = nullptr;
     }
 
     Node(Token token) {
         this->token = token;
-        type = NodeType::NULL;
+        type = NodeType::NONE;
         child = nullptr;
         sibling = nullptr;
     }
